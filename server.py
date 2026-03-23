@@ -41,34 +41,36 @@ def atender_cliente(conn, addr):
     
     if len(jogadores) < 2:
         conn.sendall(b"Esperando mais jogadores...\n")
-    else:
-        conn.sendall(b"Jogador encontrado!\nIniciando jogo...\n")
-        sleep(WAITING_TIME)
-        conn.sendall("A letra sorteada eh: {}".format(letra_sorteada.lower()).encode("utf-8"))
-        conn.sendall(f"\nResponda com uma palavra que comece com a letra sorteada. >>> {letra_sorteada.lower()} <<<\n".encode("utf-8"))
+        return
 
-        with conn:
-            while not stop.is_set():
-                conn.sendall(b"JOGO INICIADO!!!!!!!")
-                data = conn.recv(1024)
-                mensagem = data.decode("utf-8")
-                print(f"[Server] Recebido de {addr}: {mensagem}", flush=True )
-                print(f"[Server] Processando respostas..", flush=True )
-                sleep (WAITING_TIME)
-                resposta = mensagem.lower()
-                respostas["CEP"] = resposta
-                respostas["NOME"] = resposta
-                respostas["FRUTA"] = resposta
-                respostas["MSÉ"] = resposta
+    conn.sendall(b"Jogador encontrado!\nIniciando jogo...\n")
+    sleep(WAITING_TIME)
+    conn.sendall("A letra sorteada eh: {}".format(letra_sorteada.lower()).encode("utf-8"))
+    conn.sendall(f"\nResponda com uma palavra que comece com a letra sorteada. >>> {letra_sorteada.lower()} <<<\n".encode("utf-8"))
 
-                if resposta == "stop":
-                    resposta = "Jogo encerrado. Obrigado por jogar!"
-                    stop.set()
-                #     break
-                
-                # conn.sendall(resposta.encode("utf-8"))
+    with conn:
+        conn.sendall(b"JOGO INICIADO!!!!!!!")
 
-                print(f"[Server] Respondido para {addr}: {resposta}", flush=True)
+        while not stop.is_set():
+            data = conn.recv(1024)
+            mensagem = data.decode("utf-8")
+            print(f"[Server] Recebido de {addr}: {mensagem}", flush=True )
+            print(f"[Server] Processando respostas..", flush=True )
+            sleep (WAITING_TIME)
+            resposta = mensagem.lower()
+            respostas["CEP"] = resposta
+            respostas["NOME"] = resposta
+            respostas["FRUTA"] = resposta
+            respostas["MSÉ"] = resposta
+
+            if resposta == "stop":
+                resposta = "Jogo encerrado. Obrigado por jogar!"
+                stop.set()
+            #     break
+            
+            # conn.sendall(resposta.encode("utf-8"))
+
+            print(f"[Server] Respondido para {addr}: {resposta}", flush=True)
 
 
     print(f"[Server] Conexão encerrada {addr}", flush=True)
