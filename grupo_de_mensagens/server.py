@@ -3,8 +3,9 @@ from time import sleep
 from datetime import datetime
 import socket
 
+
 HOST = "0.0.0.0"
-PORT = 9002
+PORT = 9003
 
 WAITING_TIME = 3
 
@@ -87,22 +88,25 @@ def atender_cliente(conn, addr, clientes):
         while True:
             #trabalho com as mensagens enviadas da outra ponta
             data = conn.recv(1024)
-            mensagem = data.decode("utf-8")
+            clientes["mensagem"] = data.decode("utf-8")
             
+            #guardo também a mensagem no dict, se não fizer isso envia mensagem de outro cliente
+            mensagem = clientes["mensagem"]
+            # print(clientes)
             # confirma que recebeu
             print(f"[Server]  Produzindo mensagem de {addr}: {mensagem}...", flush=True )
             
             
-            resposta = (f"[ {nome} |{addr}| {hora_mensagem} ]\n{mensagem}")
+            resposta = (f">{nome}[{addr}] : {hora_mensagem} ]\n- {mensagem}")
             recebeMensagem(resposta)  # Insere a mensagem do cliente na fila
-            sleep(WAITING_TIME)
             print(f"[Cliente] {nome} enviou mensagem ao grupo.", flush=True)
+            # for cliente in pessoas.values():
+            #     if cliente == conn:
+            #         print(f"[Server] enviando mensagem para {cliente['nome']}", flush=True)
+            #         enviaMensagem()
+            # conn.sendall("mensagem enviada para o grupo".encode("utf-8"))
             for cliente in pessoas.values():
-                if cliente != conn:
-                    print(f"[Server] enviando mensagem para {cliente['nome']}", flush=True)
-                    enviaMensagem()
-            conn.sendall("mensagem enviada para o grupo".encode("utf-8"))
-            print(f"[Server] Respondido para {nome}", flush=True)
+                print(f"[Server] Respondido para {cliente['nome']}", flush=True)
             
     print(f"[Server] Conexão encerrada {addr}", flush=True)
 
@@ -123,7 +127,8 @@ def iniciar_servidor():
             pessoas[addr] = {
                 "nome": nome,
                 "IP": addr,
-                "conn": conn
+                "conn": conn,
+                "mensagem": "",
                 }
             #inicia a thread
             thread = threading.Thread(
@@ -137,22 +142,23 @@ def iniciar_servidor():
 def recebeMensagem(mensagem_cliente): #tread produtora  
     # Inclui mensagens na fila
     id_msg = 0
-    
+    print("[LOG] Produtor de mensagens inciado.", flush=True  )
     msg_produzida = f"{mensagem_cliente}"
-    print(f"[Server] recebendo mensagem: {msg_produzida}", flush=True)
+    print(f"[Server] recebendo mensagem: '({msg_produzida})'", flush=True)
     produzir(msg_produzida)
     id_msg += 1
     sleep(1)
 
 def enviaMensagem(): #thread consumidora
-            msg_enviada = consumir() # Retira a mensagem da fila,
-
-            for cliente in pessoas.values():
-                print(f"[Server] {cliente} enviou {msg_enviada}", flush=True)
-                conn = cliente["conn"]
-                conn.sendall(msg_enviada.encode("utf-8"))
-                print(f"[Server] Mensagens enviadas para {cliente['nome']}", flush=True)
-            sleep(WAITING_TIME)
+    while True:
+        print(f"[LOG] Consumidor de mensagens inciado.", flush=True)
+        msg_enviada = consumir() # Retira a mensagem da fila,
+        for cliente in pessoas.values():
+            print(f"[Server] mensagem enviada: {msg_enviada}", flush=True)
+            conn = cliente["conn"]
+            conn.sendall(f"\n{msg_enviada}".encode("utf-8"))
+            print(f"[Server] Mensagens enviadas para {cliente['nome']}", flush=True)
+            # sleep(WAITING_TIME)
             
             
 # if __name__ == "__main__":
@@ -161,7 +167,6 @@ def enviaMensagem(): #thread consumidora
 
 
 def main():
-    iniciar_servidor()
 
     # Cria a thread produtora
     t0 = threading.Thread(
@@ -171,22 +176,24 @@ def main():
 
     # Cria 2 threads consumidoras
     t1 = threading.Thread(
-                target=enviaMensagem, args=(1,), # Será a thread 1
+                target=enviaMensagem, # Será a thread 1
                 daemon=True
             )
     t2 = threading.Thread(
-                target=enviaMensagem, args=(2,), # Será a thread 2
+                target=enviaMensagem, # Será a thread 2
                 daemon=True
             )
     
-    t0.start()
+    # t0.start()
     t1.start()
     t2.start()
+    
+    iniciar_servidor()
 
-    t0.join()
+    
+    # t0.join()
     t1.join()
     t2.join()
-
 
 if __name__ == "__main__":
     main()
