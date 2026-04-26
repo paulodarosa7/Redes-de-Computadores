@@ -99,7 +99,7 @@ def atender_cliente(conn, addr, clientes):
             
             resposta = (f">{nome}[{addr}] : {hora_mensagem} ]\n- {mensagem}")
             recebeMensagem(resposta)  # Insere a mensagem do cliente na fila
-            print(f"[Cliente] {nome} enviou mensagem ao grupo.", flush=True)
+            print(f"[Server] {nome} enviou mensagem ao grupo.", flush=True)
             # for cliente in pessoas.values():
             #     if cliente == conn:
             #         print(f"[Server] enviando mensagem para {cliente['nome']}", flush=True)

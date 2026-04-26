@@ -3,7 +3,7 @@ import threading
 import tkinter as tk
 from tkinter import scrolledtext
 
-HOST = "192.168.100.18"
+HOST = "127.0.0.1"
 PORT = 9003
 
 # Função para receber mensagens do servidor
@@ -15,6 +15,7 @@ def receber_mensagem():
             chat_area.insert(tk.END, f"{data}\n")
             chat_area.yview(tk.END)  # rola até o fim
             chat_area.config(state='disabled')
+            print(f"[LOG] Mensagem recebida!", flush=True)
         except:
             break
 

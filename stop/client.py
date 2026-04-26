@@ -22,14 +22,37 @@ def receber_mensagem(serv):
             print("[Cliente] Conexão perdida com o servidor.")
             break
 
+# def enviar_mensagem(cliente):
+#     cep = input("[Cliente] Digite o CEP: ")
+#     cliente.sendall(cep.encode("utf-8"))
+#     nome = input("[Cliente] Digite o nome: ")
+#     cliente.sendall(nome.encode("utf-8"))
+#     fruta = input("[Cliente] Digite a fruta: ")
+#     cliente.sendall(fruta.encode("utf-8"))
+#     mse = input("[Cliente] Minha sogra é?: ")
+#     cliente.sendall(mse.encode("utf-8"))
 
 def conectar():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as cliente:
+
         cliente.connect((HOST, PORT))
         print(f"[Cliente] Conectado ao servidor {HOST}:{PORT}")
 
         nome = input("[Cliente] Digite seu nome: ")
         cliente.sendall(nome.encode("utf-8"))
+        
+        dados = cliente.recv(1024)
+    
+        NOME = input()
+        cliente.sendall(NOME.encode("utf-8"))
+        FRUTA = input()
+        cliente.sendall(FRUTA.encode("utf-8"))
+        CEP = input()
+        cliente.sendall(CEP.encode("utf-8"))
+        MSE = input()
+        cliente.sendall(MSE.encode("utf-8"))
+
+        
         
         thread = threading.Thread(
             target=receber_mensagem,
