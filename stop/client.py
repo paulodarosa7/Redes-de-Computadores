@@ -34,32 +34,34 @@ def receber_mensagem(serv):
 
 def conectar():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as cliente:
-
         cliente.connect((HOST, PORT))
         print(f"[Cliente] Conectado ao servidor {HOST}:{PORT}")
-
+        
         nome = input("[Cliente] Digite seu nome: ")
         cliente.sendall(nome.encode("utf-8"))
-        
-        dados = cliente.recv(1024)
-    
-        NOME = input()
-        cliente.sendall(NOME.encode("utf-8"))
-        FRUTA = input()
-        cliente.sendall(FRUTA.encode("utf-8"))
-        CEP = input()
-        cliente.sendall(CEP.encode("utf-8"))
-        MSE = input()
-        cliente.sendall(MSE.encode("utf-8"))
 
         
-        
+#        dados = cliente.recv(4096)
         thread = threading.Thread(
             target=receber_mensagem,
             args=(cliente,)
         )
         thread.start()
-        thread.join()
+        
+        while True:
+            resposta = input()
+            cliente.sendall(resposta.encode("utf-8"))
+
+        # NOME = input("NOME: ")
+        # cliente.sendall(NOME.encode("utf-8"))
+        # FRUTA = input("FRUTA: ")
+        # cliente.sendall(FRUTA.encode("utf-8"))
+        # CEP = input("CEP: ")
+        # cliente.sendall(CEP.encode("utf-8"))
+        # MSE = input("Minha sogra é?: ")
+        # cliente.sendall(MSE.encode("utf-8"))
+
+        #thread.join()
 
 
 # with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as cliente:

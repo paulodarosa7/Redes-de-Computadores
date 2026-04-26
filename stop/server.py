@@ -1,4 +1,5 @@
 from concurrent.futures import thread
+from collections import Counter
 import socket
 import threading
 import random
@@ -9,7 +10,7 @@ from time import sleep
 HOST = "0.0.0.0"
 PORT = 9002
 
-WAITING_TIME = 3
+WAITING_TIME = 2
 
 respostas = {}
 
@@ -74,26 +75,23 @@ def atender_cliente(conn, addr, nome):
     conn.sendall(f"{nome} seja bem-vindo ao meu servidor! \n".encode("utf-8"))
     print(f"[Server] Nova conexão {addr}", flush=True)
     conn.sendall(b"Vamos jogar stop! \n")
-    
-    with conn:
-        data = conn.recv(1024) 
-        jogadores[conn]["nome"] = data.decode("utf-8").strip()    
-        resp = data.decode("utf-8") #guardo a resposta em resp
-        print(f"[LOG] Jogo iniciado", flush=True)
+#print(f"[Server] Conexão encerrada {addr}", flush=True)
+    # with conn:
+    #     data = conn.recv(4096) 
+    #     jogadores[conn]["nome"] = data.decode("utf-8").strip()    
+    #     resposta = data.decode("utf-8") #guardo a resposta em resposta
+    #     print(f"[LOG] Jogo iniciado", flush=True)
         
-        while not stop.is_set():
-            # Desenvolver jogo enquanto ninguem stoppou o jogo
-            sleep(WAITING_TIME)
+    #     while not stop.is_set():
+    #         # Desenvolver jogo enquanto ninguem stoppou o jogo
+    #         sleep(WAITING_TIME)
+    #         if resposta == "stop":
+    #             resposta = "Jogo encerrado. Obrigado por jogar!"
+    #             stop.set()  
+            # conn.sendall(resposta.encode("utf-8"))
+            # print(f"[Server] Respondido para {addr}: {resposta}", flush=True)
             
-            if resposta == "stop":
-                resposta = "Jogo encerrado. Obrigado por jogar!"
-                stop.set()  
-            conn.sendall(resposta.encode("utf-8"))
-            print(f"[Server] Respondido para {addr}: {resposta}", flush=True)
-
-
-    print(f"[Server] Conexão encerrada {addr}", flush=True)
-
+            
 def iniciar_jogo(jogadores):  
     print(f"[LOG] Etapa iniciar_jogo()")
     sleep(WAITING_TIME)
@@ -105,9 +103,13 @@ def iniciar_jogo(jogadores):
         jogador["conn"].sendall(f"Letra sorteada: {letra_sorteada}\n".encode("utf-8"))
         jogador["conn"].sendall(f"JOGO INICIADO!!!!!!! \n".encode("utf-8"))    
         
+        
+        
+        # tratar_respostas(jogador['conn'])
+        
         tratar_respostas_th = threading.Thread(
             target=tratar_respostas,
-            args=(jogadores,),
+            args=(jogador,),
             daemon=True
         )
         
@@ -115,54 +117,98 @@ def iniciar_jogo(jogadores):
         
         # sleep(WAITING_TIME)
         
-def tratar_respostas(jogadores):
-    for jogador in jogadores.values():
-        print(f"[LOG] Etapa tratar_respostas()")
-                
-        jogador["conn"].sendall(f"NOME: ".encode("utf-8"))
-        recebeMensagem(jogador["conn"].recv(1024).decode("utf-8").strip())
-        print(f"[LOG] Jogador {jogador['nome']} respondeu para [NOME]: {jogador['respostas']['NOME']}", flush=True)
+def tratar_respostas(jogador):
+    print(f"[LOG] Etapa tratar_respostas()")
+    conn = jogador["conn"]
+    nome_jogador = jogador["nome"]
+    respostas_jogador = jogador["respostas"]
+    # stop = jogador["respostas"]["STOP"]
+    print(f"[LOG] Tratando respostas do jogador {nome_jogador}")
+    
+    while not stop.is_set():
+        conn.sendall(f"NOME: ".encode("utf-8"))
+        respostas = conn.recv(4096).decode("utf-8").strip()
+        respostas_jogador["NOME"] = respostas
+        recebeMensagem(respostas)
+        print(f"[LOG] Jogador {nome_jogador} respondeu para [NOME]: {respostas_jogador['NOME']}", flush=True)
         
-        jogador["conn"].sendall(f"FRUTA: ".encode("utf-8"))
-        recebeMensagem(jogador["conn"].recv(1024).decode("utf-8").strip())
-        print(f"[LOG] Jogador {jogador['nome']} respondeu para [FRUTA]: {jogador['respostas']['FRUTA']}", flush=True)
+        conn.sendall(f"FRUTA: ".encode("utf-8"))
+        respostas = conn.recv(4096).decode("utf-8").strip()
+        respostas_jogador["FRUTA"] = respostas
+        recebeMensagem(respostas)
+        print(f"[LOG] Jogador {nome_jogador} respondeu para [FRUTA]: {respostas_jogador['FRUTA']}", flush=True)
 
-        jogador["conn"].sendall(f"CEP: ".encode("utf-8"))
-        recebeMensagem(jogador["conn"].recv(1024).decode("utf-8").strip())
-        print(f"[LOG] Jogador {jogador['nome']} respondeu para [CEP]: {jogador['respostas']['CEP']}", flush=True)
+        conn.sendall(f"CEP: ".encode("utf-8"))
+        respostas = conn.recv(4096).decode("utf-8").strip()
+        respostas_jogador["CEP"] = respostas
+        recebeMensagem(respostas)
+        print(f"[LOG] Jogador {nome_jogador} respondeu para [CEP]: {respostas_jogador['CEP']}", flush=True)
         
-        jogador["conn"].sendall(f"MSE: ".encode("utf-8"))
-        recebeMensagem(jogador["conn"].recv(1024).decode("utf-8").strip())
-        print(f"[LOG] Jogador {jogador['nome']} respondeu para [MSE]: {jogador['respostas']['MSE']}", flush=True)
+        conn.sendall(f"MSE: ".encode("utf-8"))
+        respostas = conn.recv(4096).decode("utf-8").strip()
+        respostas_jogador["MSE"] = respostas
+        recebeMensagem(respostas)
+        print(f"[LOG] Jogador {nome_jogador} respondeu para [MSE]: {respostas_jogador['MSE']}", flush=True)
+        
+        conn.sendall(f"VOCÊ RESPONDEU TUDO! ENVIE 'STOP' para encerrar o jogo: ".encode("utf-8"))
+        if conn.recv(4096).decode("utf-8").strip() == "stop":
+            stop.set()
+            
+    conn.sendall(f"Jogo encerrado por {nome_jogador}!\n".encode("utf-8"))
+    print(f"[LOG] Jogador {nome_jogador} enviou stop. Encerrando jogo...", flush=True)
+    
+    pontuacao =calcula_pontos(jogadores)
+    
+    print(f"[LOG] Pontuação do jogador {nome_jogador} atualizada: {pontuacao}", flush=True)
+    conn.sendall(f"Pontuação atualizada: {pontuacao}\n".encode("utf-8"))
 
 def calcula_pontos(jogadores):
-    while not stop.is_set():
-        sleep(WAITING_TIME)
-        print(f"[LOG] Calculando pontos...")
+    print(f"[LOG] Etapa calcular_pontos()")
+    print('[Server] calculando pontos | [LOG] STOP is true')
+    print(f"[LOG] Calculando pontos...")
+    
+    temas = {
+        "NOME": {}, # jogador[nome] : resposta = 1
+        "FRUTA": {},
+        "CEP": {},
+        "MSE": {}
+    }
+
+    for tema in temas:
+        contagem_respostas = []
         
         for jogador in jogadores.values():
-            print(f"Jogador: {jogador}, Respostas: {jogadores[jogador]['respostas']}")
-            if jogadores[jogador]['respostas']['NOME'] == jogador['respostas']['NOME'] and jogadores[jogador]['respostas']['FRUTA'] == jogador['respostas']['FRUTA'] and jogadores[jogador]['respostas']['CEP'] == jogador['respostas']['CEP'] and jogadores[jogador]['respostas']['MSÉ'] == jogador['respostas']['MSÉ']:
-                jogadores[jogador]['pontuacao'] += 1
-            else:
-                jogadores[jogador]['pontuacao'] += 3
+            resposta = jogador["respostas"][tema].strip().lower()
+            contagem_respostas.append(resposta)
             
-        pontuacao_atualizada = {jogador: jogadores[jogador]['pontuacao'] for jogador in jogadores}
-        return pontuacao_atualizada
+        count = Counter(contagem_respostas)
+        
+        for jogador in jogadores.values():
+            resposta = jogador["respostas"][tema].strip().lower()
+            if count[resposta] == 1:
+                print(f'[LOG] {jogador["nome"]} ganhou 3 pontos no tema {tema}')
+                jogador["pontuacao"] += 3
+            else:
+                print(f'[LOG] {jogador["nome"]} ganhou 1 ponto no tema {tema}')
+                jogador["pontuacao"] += 1
+                
+    return {
+        jogador["nome"]: jogador["pontuacao"]
+        for jogador in jogadores.values()
+    }
 
-# def enviaInstrucoes(letra_sorteada, jogadores):
-#     print(f"[LOG] Etapa enviaInstrucoes()")
-#     jogadores["conn"].sendall(f"Letra sorteada: {letra_sorteada}\n".encode("utf-8"))
-#     jogadores["conn"].sendall(f"Preparem-se\nIniciando jogo em ".encode("utf-8"))
-#     sleep(1)
-#     jogadores["conn"].sendall(f"3... ".encode("utf-8"))
-#     sleep(1)
-#     jogadores["conn"].sendall(f"2... ".encode("utf-8"))
-#     sleep(1)
-#     jogadores["conn"].sendall(f"1... ".encode("utf-8"))
-#     sleep(1)
-#     print(f"[LOG] Contagem enviada - Iniciando jogo")
-#     jogadores["conn"].sendall(f"JOGO INICIADO!!!!!!! \n".encode("utf-8")) 
+    
+    
+                
+    
+            
+         
+    
+    
+
+        
+    pontuacao_atualizada = {jogador: jogadores[jogador]['pontuacao'] for jogador in jogadores}
+    return pontuacao_atualizada
 
 
 def recebeMensagem(mensagem_cliente): #tread produtora  
@@ -188,20 +234,19 @@ def enviaMensagem():
               
 
 
-def calcula_pontos(jogadores):
-    while not stop.is_set():
-        sleep(WAITING_TIME)
-        print(f"[LOG] Calculando pontos...")
-        
-        for jogador in jogadores.values():
-            print(f"Jogador: {jogador}, Respostas: {jogadores[jogador]['respostas']}")
-            if jogadores[jogador]['respostas']['NOME'] == jogador['respostas']['NOME'] and jogadores[jogador]['respostas']['FRUTA'] == jogador['respostas']['FRUTA'] and jogadores[jogador]['respostas']['CEP'] == jogador['respostas']['CEP'] and jogadores[jogador]['respostas']['MSÉ'] == jogador['respostas']['MSÉ']:
-                jogadores[jogador]['pontuacao'] += 1
-            else:
-                jogadores[jogador]['pontuacao'] += 3
+# def calcula_pontos(jogadores):
+#     sleep(WAITING_TIME)
+#     print(f"[LOG] Calculando pontos...")
+    
+#     for jogador in jogadores.values():
+#         print(f"Jogador: {jogador}, Respostas: {jogadores[jogador]['respostas']}")
+#         if jogadores[jogador]['respostas']['NOME'] == jogador['respostas']['NOME'] and jogadores[jogador]['respostas']['FRUTA'] == jogador['respostas']['FRUTA'] and jogadores[jogador]['respostas']['CEP'] == jogador['respostas']['CEP'] and jogadores[jogador]['respostas']['MSÉ'] == jogador['respostas']['MSÉ']:
+#             jogadores[jogador]['pontuacao'] += 1
+#         else:
+#             jogadores[jogador]['pontuacao'] += 3
             
-        pontuacao_atualizada = {jogador: jogadores[jogador]['pontuacao'] for jogador in jogadores}
-        return pontuacao_atualizada
+#     pontuacao_atualizada = {jogador: jogadores[jogador]['pontuacao'] for jogador in jogadores}
+#     return pontuacao_atualizada
         
         
 def iniciar_servidor():
@@ -214,7 +259,7 @@ def iniciar_servidor():
 
         while True: # DEFINIR QUANDO INICIAR O JOGO
             conn, addr = server.accept()
-            nome = conn.recv(1024).decode("utf-8") # recebe o nome do cliente
+            nome = conn.recv(4096).decode("utf-8") # recebe o nome do cliente
 
             jogadores[conn] = {
                 "nome": nome, 
@@ -227,8 +272,12 @@ def iniciar_servidor():
                     "FRUTA": "",
                     "CEP": "",
                     "MSE": "",
+                    # "STOP": threading.Event(),
+                    
                 }
             }
+            
+            
             
             thread = threading.Thread(
                 target=atender_cliente,
@@ -244,6 +293,7 @@ def iniciar_servidor():
                 inicio_jogo = True
                 iniciar_jogo_thread = threading.Thread(target=iniciar_jogo, args=(jogadores,), daemon=True)
                 iniciar_jogo_thread.start()
+                print(f'Analisa dictionário de jogadores: {jogadores}')
             else:
                 print(f"[LOG] Aguardando mais jogadores... {len(jogadores)}/{n_jogadores}")
                 conn.sendall(f"Aguardando mais jogadores... {len(jogadores)}/{n_jogadores} \n".encode("utf-8"))
