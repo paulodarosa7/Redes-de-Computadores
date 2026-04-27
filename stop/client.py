@@ -9,8 +9,8 @@ PORT = 9002
 
 def receber_mensagem(serv):
     while True:
-        try:
-            dados = serv.recv(1024)
+        try: # sempre recebendo mensagem nova
+            dados = serv.recv(4096)
             
             if not dados:
                 print("[Cliente] Conexão fechada pelo servidor.")
@@ -21,16 +21,6 @@ def receber_mensagem(serv):
         except:
             print("[Cliente] Conexão perdida com o servidor.")
             break
-
-# def enviar_mensagem(cliente):
-#     cep = input("[Cliente] Digite o CEP: ")
-#     cliente.sendall(cep.encode("utf-8"))
-#     nome = input("[Cliente] Digite o nome: ")
-#     cliente.sendall(nome.encode("utf-8"))
-#     fruta = input("[Cliente] Digite a fruta: ")
-#     cliente.sendall(fruta.encode("utf-8"))
-#     mse = input("[Cliente] Minha sogra é?: ")
-#     cliente.sendall(mse.encode("utf-8"))
 
 def conectar():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as cliente:
