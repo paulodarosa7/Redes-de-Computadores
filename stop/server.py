@@ -20,7 +20,7 @@ stop = threading.Event() # Evento para controlar o encerramento do jogo
 inicio_jogo = False
 
 
-letra_sorteada = random.choice(string.ascii_letters) # Sorteia uma letra do alfabeto para o jogo  
+letra_sorteada = random.choice(string.ascii_letters).upper # Sorteia uma letra do alfabeto para o jogo  
 
 n_jogadores = 5 #DEFINIR ANTES DE INICIAR
 
