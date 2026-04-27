@@ -118,6 +118,8 @@ def iniciar_jogo(jogadores):
         # sleep(WAITING_TIME)
         
 def tratar_respostas(jogador):
+    global pontuacao
+
     print(f"[LOG] Etapa tratar_respostas()")
     conn = jogador["conn"]
     nome_jogador = jogador["nome"]
@@ -132,17 +134,30 @@ def tratar_respostas(jogador):
         recebeMensagem(respostas)
         print(f"[LOG] Jogador {nome_jogador} respondeu para [NOME]: {respostas_jogador['NOME']}", flush=True)
         
+        # if stop.is_set():
+        #     print('[LOG] Stop is true | interrompendo jogadores')
+        #     break
+        
+        
         conn.sendall(f"FRUTA: ".encode("utf-8"))
         respostas = conn.recv(4096).decode("utf-8").strip()
         respostas_jogador["FRUTA"] = respostas
         recebeMensagem(respostas)
         print(f"[LOG] Jogador {nome_jogador} respondeu para [FRUTA]: {respostas_jogador['FRUTA']}", flush=True)
 
+        # if stop.is_set():
+        #     print('[LOG] Stop is true | interrompendo jogadores')
+        #     break
+
         conn.sendall(f"CEP: ".encode("utf-8"))
         respostas = conn.recv(4096).decode("utf-8").strip()
         respostas_jogador["CEP"] = respostas
         recebeMensagem(respostas)
         print(f"[LOG] Jogador {nome_jogador} respondeu para [CEP]: {respostas_jogador['CEP']}", flush=True)
+ 
+        # if stop.is_set():
+        #     print('[LOG] Stop is true | interrompendo jogadores')
+        #     break
         
         conn.sendall(f"MSE: ".encode("utf-8"))
         respostas = conn.recv(4096).decode("utf-8").strip()
@@ -150,15 +165,19 @@ def tratar_respostas(jogador):
         recebeMensagem(respostas)
         print(f"[LOG] Jogador {nome_jogador} respondeu para [MSE]: {respostas_jogador['MSE']}", flush=True)
         
-        conn.sendall(f"VOCÊ RESPONDEU TUDO! ENVIE 'STOP' para encerrar o jogo: ".encode("utf-8"))
-        if conn.recv(4096).decode("utf-8").strip() == "stop":
-            stop.set()
-            
-    conn.sendall(f"Jogo encerrado por {nome_jogador}!\n".encode("utf-8"))
-    print(f"[LOG] Jogador {nome_jogador} enviou stop. Encerrando jogo...", flush=True)
-    
-    pontuacao =calcula_pontos(jogadores)
-    
+        # if stop.is_set():
+        #     print('[LOG] Stop is true | interrompendo jogadores')
+        #     break 
+        if not stop.is_set():       
+            conn.sendall(f"VOCÊ RESPONDEU TUDO! ENVIE 'STOP' para encerrar o jogo: ".encode("utf-8"))
+            if conn.recv(4096).decode("utf-8").strip() == "stop":
+                stop.set()   
+                pontuacao = calcula_pontos(jogadores)
+                conn.sendall(f"Jogo encerrado por {nome_jogador}!\n".encode("utf-8"))
+                print(f"[LOG] Jogador {nome_jogador} enviou stop. Encerrando jogo...", flush=True)
+                break
+        else:
+            conn.sendall(");\nOutro jogador respondeu stop primeiro!\nOs pontos estão sendo contados!".encode('utf-8'))
     print(f"[LOG] Pontuação do jogador {nome_jogador} atualizada: {pontuacao}", flush=True)
     conn.sendall(f"Pontuação atualizada: {pontuacao}\n".encode("utf-8"))
 
@@ -167,31 +186,33 @@ def calcula_pontos(jogadores):
     print('[Server] calculando pontos | [LOG] STOP is true')
     print(f"[LOG] Calculando pontos...")
     
-    temas = {
-        "NOME": {}, # jogador[nome] : resposta = 1
-        "FRUTA": {},
-        "CEP": {},
-        "MSE": {}
-    }
-
+    temas = ["NOME", "FRUTA", "CEP", "MSE"]
     for tema in temas:
         contagem_respostas = []
         
+        #contagem de respostas
         for jogador in jogadores.values():
             resposta = jogador["respostas"][tema].strip().lower()
+            if resposta == "":
+                continue
             contagem_respostas.append(resposta)
             
         count = Counter(contagem_respostas)
         
-        for jogador in jogadores.values():
-            resposta = jogador["respostas"][tema].strip().lower()
-            if count[resposta] == 1:
-                print(f'[LOG] {jogador["nome"]} ganhou 3 pontos no tema {tema}')
-                jogador["pontuacao"] += 3
-            else:
-                print(f'[LOG] {jogador["nome"]} ganhou 1 ponto no tema {tema}')
-                jogador["pontuacao"] += 1
+        # calculo de pontos
+        if stop.is_set():
+            for jogador in jogadores.values():
+                resposta = jogador["respostas"][tema].strip().lower()
+                if resposta == '':
+                    continue
+                elif count[resposta] == 1:
+                    print(f'[LOG] {jogador["nome"]} ganhou 3 pontos no tema {tema}')
+                    jogador["pontuacao"] += 3
+                else:
+                    print(f'[LOG] {jogador["nome"]} ganhou 1 ponto no tema {tema}')
+                    jogador["pontuacao"] += 1
                 
+    print(jogador["respostas"])
     return {
         jogador["nome"]: jogador["pontuacao"]
         for jogador in jogadores.values()
@@ -212,12 +233,14 @@ def calcula_pontos(jogadores):
 
 
 def recebeMensagem(mensagem_cliente): #tread produtora  
+    if stop.is_set():
+        print(f'[LOG] STOP is true [{mensagem_cliente}] ignorada')
     # Inclui RESPOSTAS na fila
     id_msg = 0
     print("[LOG] Produtor de mensagens inciado.", flush=True  )
     msg_produzida = f"{mensagem_cliente}"
     print(f"[Server] recebendo mensagem: '({msg_produzida})'", flush=True)
-    produzir(msg_produzida)
+    produzir(msg_produzida.lower())
     id_msg += 1
     sleep(1)
 
