@@ -39,21 +39,7 @@ As atividades exploram:
 
 ---
 
-## 🧩 Atividade 1 — Jogo Stop (Cliente/Servidor)
-
-Implementação de um jogo estilo **Stop**, onde múltiplos clientes se conectam ao servidor e participam de uma rodada.
-
-### Características:
-
-* Controle de múltiplos jogadores
-* Comunicação em tempo real
-* Encerramento do jogo via comando STOP
-* Cálculo de pontuação baseado nas respostas
-* Uso de threads para tratamento simultâneo
-
----
-
-## 💬 Atividade 2 — Chat com Fila e Semáforos
+## 💬 Atividade 1 — Grupo de "WhatsApp"
 
 Implementação de um sistema de chat com múltiplos clientes.
 
@@ -66,6 +52,22 @@ Implementação de um sistema de chat com múltiplos clientes.
 * Interface gráfica utilizando Tkinter
 
 ---
+
+---
+
+## 🧩 Atividade 2 — Jogo Stop (Cliente/Servidor) - Múltiplos jogadores
+
+Implementação de um jogo estilo **Stop**, onde múltiplos clientes se conectam ao servidor e participam de uma rodada.
+
+### Características:
+
+* Controle de múltiplos jogadores
+* Comunicação em tempo real
+* Encerramento do jogo via comando STOP
+* Cálculo de pontuação baseado nas respostas
+* Uso de threads para tratamento simultâneo
+
+
 
 ## ⚙️ Tecnologias utilizadas
 
