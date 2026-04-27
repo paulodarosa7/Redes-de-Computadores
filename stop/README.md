@@ -39,7 +39,7 @@ python3 client.py
 
 ## Funcionamento do jogo
 
-* O servidor aguarda a conexão de **5 jogadores**
+* Nesta versão, o servidor aguarda a conexão de **5 jogadores**
 * Após atingir esse número, o jogo inicia automaticamente
 * Uma letra é sorteada
 * Os jogadores devem responder aos seguintes temas:
