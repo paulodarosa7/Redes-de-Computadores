@@ -12,7 +12,7 @@ WAITING_TIME = 3
 
 # Fila de mensagens
 FILA = []
-pessoas = {}
+pessoas = {} # Dicionario de pessoas no grupo
 
 # # Semáforo de acesso à fila
 SEMAFORO_ACESSO = threading.Semaphore(1) # Apenas 1 thread pode acessar a fila por vez
@@ -21,7 +21,7 @@ SEMAFORO_ACESSO = threading.Semaphore(1) # Apenas 1 thread pode acessar a fila p
 SEMAFORO_ITENS = threading.Semaphore(0)  # A fila inicia com 0 elementos
 
 
-
+# PRODUÇÃO E CONSUMO
 def produzir(mensagem):
     global FILA
     global SEMAFORO_ACESSO
@@ -81,30 +81,32 @@ def atender_cliente(conn, addr, clientes):
     addr = clientes["IP"]
     conn = clientes["conn"]
     
-    hora_mensagem = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    # hora_mensagem = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(f"[Server]{nome}:{addr} - Entrou no grupo.", flush=True) 
 
     with conn:
         while True:
             #trabalho com as mensagens enviadas da outra ponta
-            data = conn.recv(1024)
+            data = conn.recv(4096)
             clientes["mensagem"] = data.decode("utf-8")
             
             #guardo também a mensagem no dict, se não fizer isso envia mensagem de outro cliente
             mensagem = clientes["mensagem"]
             # print(clientes)
+            
             # confirma que recebeu
             print(f"[Server]  Produzindo mensagem de {addr}: {mensagem}...", flush=True )
             
-            
-            resposta = (f">{nome}[{addr}] : {hora_mensagem} ]\n- {mensagem}")
-            recebeMensagem(resposta)  # Insere a mensagem do cliente na fila
+            # formatacao da mensagem
+            resposta = (f">{nome}[{addr}] : {datetime.now().strftime("%Y-%m-%d %H:%M:%S")} ]\n- {mensagem}")
+            # produção de mensagem acontece logo que o cliente manda a mensagem
+            recebeMensagem(resposta)  # Insere a mensagem do cliente na fila 
             print(f"[Server] {nome} enviou mensagem ao grupo.", flush=True)
             # for cliente in pessoas.values():
             #     if cliente == conn:
             #         print(f"[Server] enviando mensagem para {cliente['nome']}", flush=True)
             #         enviaMensagem()
-            # conn.sendall("mensagem enviada para o grupo".encode("utf-8"))
+            # conn.sendall("mensagem enviada para o grupo".encode("utf-8")
             for cliente in pessoas.values():
                 print(f"[Server] Respondido para {cliente['nome']}", flush=True)
             
@@ -122,13 +124,13 @@ def iniciar_servidor():
         while True:
             conn, addr = server.accept()
             # nome = input(f"Digite o nome do cliente {nome}: ".encode("utf-8")) # Solicita o nome do cliente 
-            nome = conn.recv(1024).decode("utf-8") # recebe o nome do cliente
-            # atribui o nome do cara ao endereço ip no dicionário
+            nome = conn.recv(4096).decode("utf-8") # recebe o nome do cliente
+            # atribui o nome do cara ao endereço ip no dicionário # utilizo o ip:porta pois é o unico dado que não pode ser duplicado (em teoria hsaushau)
             pessoas[addr] = {
                 "nome": nome,
                 "IP": addr,
                 "conn": conn,
-                "mensagem": "",
+                "mensagem": "", # armazena temporariamente a última mensagem enviada pelo cliente
                 }
             #inicia a thread
             thread = threading.Thread(
@@ -138,7 +140,7 @@ def iniciar_servidor():
             )
             thread.start()
 
-
+# inclusão na fila
 def recebeMensagem(mensagem_cliente): #tread produtora  
     # Inclui mensagens na fila
     id_msg = 0
@@ -149,13 +151,15 @@ def recebeMensagem(mensagem_cliente): #tread produtora
     id_msg += 1
     sleep(1)
 
+# consome mensagens o tempo todo
 def enviaMensagem(): #thread consumidora
     while True:
         print(f"[LOG] Consumidor de mensagens inciado.", flush=True)
         msg_enviada = consumir() # Retira a mensagem da fila,
         for cliente in pessoas.values():
             print(f"[Server] mensagem enviada: {msg_enviada}", flush=True)
-            conn = cliente["conn"]
+            # envio de mensagem para o grupo
+            conn = cliente["conn"] 
             conn.sendall(f"\n{msg_enviada}".encode("utf-8"))
             print(f"[Server] Mensagens enviadas para {cliente['nome']}", flush=True)
             # sleep(WAITING_TIME)
@@ -169,12 +173,14 @@ def enviaMensagem(): #thread consumidora
 def main():
 
     # Cria a thread produtora
+    # t0 não foi utilizada pq a produção de mensagem é chamada dentro da atender_cliente()
     t0 = threading.Thread(
                 target=recebeMensagem, args=(0,), # Será a thread 0
                 daemon=True
             )
 
     # Cria 2 threads consumidoras
+    #as mensagens são enviadas de forma imediata quando caem na fila
     t1 = threading.Thread(
                 target=enviaMensagem, # Será a thread 1
                 daemon=True

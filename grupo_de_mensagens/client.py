@@ -1,16 +1,17 @@
 import socket
 import threading
+# Tkinter (apenas visual)
 import tkinter as tk
 from tkinter import scrolledtext
 
 HOST = "127.0.0.1"
 PORT = 9003
 
-# Função para receber mensagens do servidor
+# cirada funcao para receber mensagens do servidor
 def receber_mensagem():
     while True:
         try:
-            data = cliente.recv(1024).decode("utf-8")
+            data = cliente.recv(4096).decode("utf-8")
             chat_area.config(state='normal')
             chat_area.insert(tk.END, f"{data}\n")
             chat_area.yview(tk.END)  # rola até o fim
@@ -19,7 +20,7 @@ def receber_mensagem():
         except:
             break
 
-# Função para enviar mensagens
+# criada funcao para enviar mensagens
 def enviar_mensagem():
     mensagem = msg_entry.get()
     print(f"[LOG] Sua mensagem foi enviada!", flush=True)
@@ -34,7 +35,7 @@ cliente.connect((HOST, PORT))
 nome = input("[Cliente] Informe seu nome: ")
 cliente.sendall(nome.encode("utf-8"))
 
-# Criando interface Tkinter
+# Criando interface Tkinter (apenas visual, não impacta no funcionamento do grupo)
 root = tk.Tk()
 root.title(f"Chat - {nome}")
 
