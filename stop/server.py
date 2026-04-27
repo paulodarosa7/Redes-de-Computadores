@@ -20,9 +20,9 @@ stop = threading.Event() # Evento para controlar o encerramento do jogo
 inicio_jogo = False
 
 
-letra_sorteada = random.choice(string.ascii_letters).upper # Sorteia uma letra do alfabeto para o jogo  
+letra_sorteada = random.choice(string.ascii_letters).upper() # Sorteia uma letra do alfabeto para o jogo  
 
-n_jogadores = 5 #DEFINIR ANTES DE INICIAR
+n_jogadores = 2 #DEFINIR ANTES DE INICIAR
 
 # Fila de mensagens
 RESPOSTAS = [] # FILA
@@ -214,6 +214,7 @@ def calcula_pontos(jogadores):
         #contagem de respostas
         for jogador in jogadores.values():
             resposta = jogador["respostas"][tema].strip().lower() #sempre convertendo para minusculo para ficar mais facil a contagem
+            
             
             # Tratando respostas vazias (temas que o usuario n conseguiu responder)
             if resposta == "": 
