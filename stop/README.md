@@ -66,8 +66,7 @@ Ele apenas realiza o cálculo e tratamento das respostas informadas pelos jogado
 
 * Não há validação das respostas em relação à letra sorteada
 * Não há tratamento robusto para desconexões inesperadas
-* O fluxo depende do cliente seguir corretamente a ordem das respostas
-* Pode ocorrer bloqueio caso algum jogador não responda
+* O fluxo depende do cliente responder corretamente a ordem dos temas
 
 ## Como utilizar corretamente
 
