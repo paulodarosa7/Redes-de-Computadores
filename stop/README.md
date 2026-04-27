@@ -39,7 +39,7 @@ python3 client.py
 
 ## Funcionamento do jogo
 
-* O servidor aguarda a conexão de **5 jogadores**
+* Nesta versão, o servidor aguarda a conexão de **5 jogadores**
 * Após atingir esse número, o jogo inicia automaticamente
 * Uma letra é sorteada
 * Os jogadores devem responder aos seguintes temas:
@@ -64,11 +64,9 @@ Ele apenas realiza o cálculo e tratamento das respostas informadas pelos jogado
 
 ## Limitações
 
-* O jogo funciona corretamente apenas com **5 jogadores**
 * Não há validação das respostas em relação à letra sorteada
 * Não há tratamento robusto para desconexões inesperadas
-* O fluxo depende do cliente seguir corretamente a ordem das respostas
-* Pode ocorrer bloqueio caso algum jogador não responda
+* O fluxo depende do cliente responder corretamente a ordem dos temas
 
 ## Como utilizar corretamente
 
