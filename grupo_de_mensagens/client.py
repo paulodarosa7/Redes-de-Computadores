@@ -57,3 +57,55 @@ thread_recv = threading.Thread(target=receber_mensagem, daemon=True)
 thread_recv.start()
 
 root.mainloop()
+
+# import socket
+# import threading
+
+# HOST = "127.0.0.1"
+# PORT = 9003
+
+# def receber_mensagem():
+#     while True:
+#         try:
+#             data = cliente.recv(4096).decode("utf-8")
+
+#             if not data:
+#                 print("[LOG] Conexão encerrada pelo servidor.")
+#                 break
+
+#             print(f"\n{data}")
+#             print("> ", end="", flush=True)
+
+#             print("[LOG] Mensagem recebida!", flush=True)
+
+#         except:
+#             break
+
+# def enviar_mensagem():
+#     while True:
+#         try:
+#             mensagem = input("> ")
+
+#             if mensagem:
+#                 cliente.sendall(mensagem.encode("utf-8"))
+#                 print("[LOG] Sua mensagem foi enviada!", flush=True)
+
+#         except:
+#             break
+
+# # Criando conexão
+# cliente = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+# cliente.connect((HOST, PORT))
+
+# nome = input("[Cliente] Informe seu nome: ")
+# cliente.sendall(nome.encode("utf-8"))
+
+# print(f"[LOG] Conectado ao servidor como {nome}")
+# print("Digite suas mensagens abaixo:")
+
+# # Thread para receber mensagens
+# thread_recv = threading.Thread(target=receber_mensagem, daemon=True)
+# thread_recv.start()
+
+# # Envio de mensagens no terminal
+# enviar_mensagem()
